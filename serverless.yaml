@@ -1,0 +1,47 @@
+service: angular-serverless
+plugins:
+  - serverless-apigw-binary
+  - serverless-offline
+  - serverless-prune-plugin
+  - serverless-domain-manager
+provider:
+  name: aws
+  region: ${env:REGION}
+  stage: ${opt:stage, 'dev'}
+  runtime: nodejs16.x
+  memorySize: 512
+  timeout: 10
+package:
+  exclude:
+    - ./**
+  include:
+    - "node_modules/@vendia/**"
+    - "node_modules/aws-serverless-express/**"
+    - "node_modules/binary-case/**"
+    - "node_modules/type-is/**"
+    - "node_modules/media-typer/**"
+    - "node_modules/mime-types/**"
+    - "node_modules/mime-db/**"
+    - "dist/**"
+    - "lambda.js"
+custom:
+  apigwBinary:
+    types:
+      - "*/*"
+  prune:
+    automatic: true
+    number: 2
+  customDomain:
+    rest:
+      domainName: ${env:DOMAIN_NAME}
+      certificateName: ${env:CERTIFICATE_NAME}
+      endpointType: "regional"
+      securityPolicy: tls_1_2
+      apiType: rest
+      hostedZoneId: ${env:HOSTED_ZONE_ID}
+functions:
+  api:
+    handler: lambda.handler
+    events:
+      - http: GET /{proxy+}
+      - http: GET /
